@@ -1,0 +1,2368 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+
+<meta charset="utf-8">
+
+<meta name="viewport"
+      content="width=device-width,initial-scale=1">
+
+<title>🇪🇸 西班牙语动词变位查询</title>
+
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+
+<style>
+
+/* =========================================================
+   基础
+   ========================================================= */
+
+*{
+  box-sizing:border-box
+}
+
+body{
+  margin:0;
+  background:#f5f6f8;
+  color:#202124;
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "PingFang SC",
+    "Microsoft YaHei",
+    sans-serif
+}
+
+
+/* =========================================================
+   顶部
+   ========================================================= */
+
+header{
+  position:sticky;
+  top:0;
+  z-index:10;
+  background:#f5f6f8ee;
+  backdrop-filter:blur(12px);
+  padding:14px;
+  border-bottom:1px solid #ddd
+}
+
+main,
+header>div{
+  max-width:900px;
+  margin:auto
+}
+
+h1{
+  font-size:22px;
+  margin:0 0 12px
+}
+
+.bar{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap
+}
+
+
+/* =========================================================
+   按钮
+   ========================================================= */
+
+label,
+button{
+  background:white;
+  border:1px solid #ddd;
+  border-radius:10px;
+  padding:9px 13px;
+  cursor:pointer;
+  font-size:14px
+}
+
+label:hover,
+button:hover{
+  background:#fafafa
+}
+
+input[type=file]{
+  display:none
+}
+
+
+/* =========================================================
+   状态
+   ========================================================= */
+
+#status,
+.count{
+  font-size:13px;
+  color:#68707d
+}
+
+
+/* =========================================================
+   缓存
+   ========================================================= */
+
+.cachebar{
+  display:flex;
+  gap:7px;
+  align-items:center;
+  flex-wrap:wrap;
+  margin-top:7px
+}
+
+.cachebtn{
+  font-size:12px;
+  padding:6px 9px;
+  border-radius:8px
+}
+
+.cache-ok{
+  color:#18794e
+}
+
+.cache-empty{
+  color:#68707d
+}
+
+
+/* =========================================================
+   搜索
+   ========================================================= */
+
+.search{
+  position:relative;
+  margin:12px 0
+}
+
+.search input{
+  width:100%;
+  padding:14px 42px 14px 15px;
+  border:1px solid #ddd;
+  border-radius:14px;
+  background:white;
+  font-size:18px;
+  outline:none
+}
+
+.search input:focus{
+  border-color:#2563eb
+}
+
+.clear{
+  position:absolute;
+  right:7px;
+  top:7px;
+  border:0;
+  font-size:20px;
+  color:#777
+}
+
+
+/* =========================================================
+   搜索建议
+   ========================================================= */
+
+.suggest{
+  position:absolute;
+  top:57px;
+  left:0;
+  right:0;
+  background:white;
+  border:1px solid #ddd;
+  border-radius:12px;
+  box-shadow:0 10px 25px #0001;
+  overflow:hidden;
+  z-index:20
+}
+
+.s{
+  padding:11px 14px;
+  border-bottom:1px solid #eee;
+  cursor:pointer
+}
+
+.s:hover{
+  background:#eff6ff
+}
+
+
+/* =========================================================
+   筛选
+   ========================================================= */
+
+.filter-section{
+  margin-top:8px
+}
+
+.filter-title{
+  font-size:12px;
+  color:#68707d;
+  margin-bottom:6px
+}
+
+.filters{
+  display:flex;
+  gap:7px;
+  overflow:auto;
+  padding-bottom:2px
+}
+
+.filter{
+  white-space:nowrap;
+  border-radius:99px;
+  padding:7px 11px;
+  border:0;
+  background:#e9ebef
+}
+
+.filter.active{
+  background:#2563eb;
+  color:white
+}
+
+
+/* =========================================================
+   动词卡片
+   ========================================================= */
+
+.card{
+  background:white;
+  border:1px solid #ddd;
+  border-radius:16px;
+  margin:12px 0;
+  overflow:hidden
+}
+
+.head{
+  padding:16px
+}
+
+.verb{
+  font-size:25px;
+  font-weight:700
+}
+
+.meaning{
+  color:#68707d;
+  margin-top:4px
+}
+
+
+/* =========================================================
+   标签
+   单元保持灰色
+   ========================================================= */
+
+.tag{
+  display:inline-block;
+  background:#eef0f3;
+  color:#202124;
+  border-radius:7px;
+  padding:4px 7px;
+  margin:0 5px 4px 0;
+  font-size:12px
+}
+
+
+/* =========================================================
+   变位分类
+   天蓝色
+   ========================================================= */
+
+.category-tag{
+  display:inline-block;
+  background:#e0f2fe;
+  color:#0369a1;
+  border-radius:7px;
+  padding:4px 7px;
+  margin:0 5px 4px 0;
+  font-size:12px
+}
+
+
+/* =========================================================
+   标签区域
+   ========================================================= */
+
+.tags{
+  margin-top:9px
+}
+
+
+/* =========================================================
+   备注
+   ========================================================= */
+
+.note{
+  margin-top:10px;
+  padding:10px 12px;
+  background:#fff8e6;
+  border-radius:9px;
+  font-size:13px;
+  line-height:1.6
+}
+
+
+/* =========================================================
+   规则提示
+   ========================================================= */
+
+.rule-note{
+  margin-top:10px;
+  padding:10px 12px;
+  background:#e0f2fe;
+  border:1px solid #7dd3fc;
+  color:#075985;
+  border-radius:9px;
+  font-size:13px;
+  line-height:1.6
+}
+
+
+/* =========================================================
+   表格
+   ========================================================= */
+
+table{
+  width:100%;
+  border-collapse:collapse
+}
+
+th,
+td{
+  padding:10px 12px;
+  border-top:1px solid #eee;
+  text-align:left;
+  font-size:14px
+}
+
+th{
+  color:#68707d;
+  font-weight:500;
+  background:#fafafa
+}
+
+
+/* =========================================================
+   空结果
+   ========================================================= */
+
+.empty{
+  text-align:center;
+  color:#68707d;
+  padding:50px 20px
+}
+
+
+/* =========================================================
+   手机端
+   ========================================================= */
+
+@media(max-width:600px){
+
+  header{
+    padding:12px 10px
+  }
+
+  .verb{
+    font-size:23px
+  }
+
+  th,
+  td{
+    font-size:13px;
+    padding:9px 8px
+  }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<header>
+
+<div>
+
+<h1>🇪🇸 西班牙语动词变位查询</h1>
+
+<div class="bar">
+
+<label>
+
+📁 上传 Excel
+
+<input
+  id="file"
+  type="file"
+  accept=".xlsx,.xls,.csv"
+>
+
+</label>
+
+<span id="status">
+请先上传你的动词表
+</span>
+
+<div class="cachebar">
+
+<button
+  class="cachebtn"
+  id="clearCache"
+>
+清除已保存词表
+</button>
+
+<span
+  id="cacheStatus"
+  class="cache-empty"
+></span>
+
+</div>
+
+</div>
+
+
+<div class="search">
+
+<input
+  id="q"
+  placeholder="输入前几个字母，例如 vol / sen / pen…"
+  autocomplete="off"
+>
+
+<button
+  class="clear"
+  id="clear"
+>
+×
+</button>
+
+<div
+  id="suggest"
+  class="suggest"
+  hidden
+></div>
+
+</div>
+
+
+<!-- 变位分类筛选 -->
+
+<div class="filter-section">
+
+<div class="filter-title">
+变位分类
+</div>
+
+<div
+  id="filters"
+  class="filters"
+></div>
+
+</div>
+
+
+<!-- 时态筛选 -->
+
+<div class="filter-section">
+
+<div class="filter-title">
+时态
+</div>
+
+<div
+  id="tenseFilters"
+  class="filters"
+></div>
+
+</div>
+
+</div>
+
+</header>
+
+
+<main>
+
+<div
+  id="count"
+  class="count"
+></div>
+
+<div
+  id="results"
+></div>
+
+</main>
+
+
+<script>
+
+/* =========================================================
+   全局数据
+   ========================================================= */
+
+let data = [];
+
+let filter = "全部";
+
+let tenseFilter = "全部";
+
+
+/* =========================================================
+   默认时态
+   ========================================================= */
+
+const DEFAULT_TENSE =
+  "直陈式现在时";
+
+const DEFAULT_TENSE_ES =
+  "Presente de Indicativo";
+
+
+/* =========================================================
+   表头标准化
+   ========================================================= */
+
+function norm(s){
+
+  return String(s ?? "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g,"")
+    .replace(/[：:，,；;（）()【】[\]{}]/g," ")
+    .replace(/\s+/g," ")
+    .trim();
+
+}
+
+
+/* =========================================================
+   自动识别 Excel 表头
+   ========================================================= */
+
+function identifyColumn(header){
+
+  const h = norm(header);
+
+  if(!h) return null;
+
+
+  /* 动词原形 */
+
+  if(
+
+    /^(verb|verbo|infinitivo|infinitive|原形|动词)$/.test(h)
+
+    ||
+
+    h.includes("infinitivo")
+
+    ||
+
+    h.includes("infinitive")
+
+  ){
+
+    return "v";
+
+  }
+
+
+  /* 中文意思 */
+
+  if(
+
+    /^(中文|中文意思|意思|释义|meaning|meanings|translation|翻译)$/.test(h)
+
+    ||
+
+    h.includes("中文意思")
+
+    ||
+
+    h.includes("中文释义")
+
+  ){
+
+    return "m";
+
+  }
+
+
+  /* 单元 */
+
+  if(
+
+    /^(u\d+|unit|unidad|单元)$/.test(h)
+
+    ||
+
+    /^u\s*\d+/.test(h)
+
+    ||
+
+    h.includes("unit")
+
+  ){
+
+    return "u";
+
+  }
+
+
+  /* 变位分类 */
+
+  if(
+
+    h.includes("变位分类")
+
+    ||
+
+    h.includes("变位规律")
+
+    ||
+
+    h.includes("分类")
+
+    ||
+
+    h.includes("类别")
+
+    ||
+
+    h.includes("规律")
+
+    ||
+
+    h === "category"
+
+    ||
+
+    h === "conjugation"
+
+  ){
+
+    return "c";
+
+  }
+
+
+  /* 时态 */
+
+  if(
+
+    h === "时态"
+
+    ||
+
+    h === "tense"
+
+    ||
+
+    h === "tiempo verbal"
+
+    ||
+
+    h === "tiempo"
+
+    ||
+
+    h.includes("时态")
+
+    ||
+
+    h.includes("tense")
+
+    ||
+
+    h.includes("tiempo verbal")
+
+  ){
+
+    return "tense";
+
+  }
+
+
+  /* yo */
+
+  if(
+
+    /\byo\b/.test(h)
+
+    ||
+
+    h.includes("1 persona singular")
+
+    ||
+
+    h.includes("1a persona singular")
+
+    ||
+
+    h.includes("1ª persona singular")
+
+    ||
+
+    h.includes("第一人称单数")
+
+  ){
+
+    return "yo";
+
+  }
+
+
+  /* tú */
+
+  if(
+
+    /\btu\b/.test(h)
+
+    ||
+
+    h.includes("2 persona singular")
+
+    ||
+
+    h.includes("2a persona singular")
+
+    ||
+
+    h.includes("2ª persona singular")
+
+    ||
+
+    h.includes("第二人称单数")
+
+  ){
+
+    return "tu";
+
+  }
+
+
+  /* él / ella / usted */
+
+  if(
+
+    h.includes("el/ella/usted")
+
+    ||
+
+    h.includes("ella/usted")
+
+    ||
+
+    h.includes("el ella usted")
+
+    ||
+
+    h === "el"
+
+    ||
+
+    h === "ella"
+
+    ||
+
+    h === "usted"
+
+    ||
+
+    h.includes("3 persona singular")
+
+    ||
+
+    h.includes("3a persona singular")
+
+    ||
+
+    h.includes("3ª persona singular")
+
+    ||
+
+    h.includes("第三人称单数")
+
+  ){
+
+    return "el";
+
+  }
+
+
+  /* nosotros / nosotras */
+
+  if(
+
+    h.includes("nosotros")
+
+    ||
+
+    h.includes("nosotras")
+
+    ||
+
+    h.includes("nosotros/as")
+
+    ||
+
+    h.includes("1 persona plural")
+
+    ||
+
+    h.includes("1a persona plural")
+
+    ||
+
+    h.includes("1ª persona plural")
+
+    ||
+
+    h.includes("第一人称复数")
+
+  ){
+
+    return "no";
+
+  }
+
+
+  /* vosotros / vosotras */
+
+  if(
+
+    h.includes("vosotros")
+
+    ||
+
+    h.includes("vosotras")
+
+    ||
+
+    h.includes("vosotros/as")
+
+    ||
+
+    h.includes("2 persona plural")
+
+    ||
+
+    h.includes("2a persona plural")
+
+    ||
+
+    h.includes("2ª persona plural")
+
+    ||
+
+    h.includes("第二人称复数")
+
+  ){
+
+    return "vo";
+
+  }
+
+
+  /* ellos / ellas / ustedes */
+
+  if(
+
+    h.includes("ellos")
+
+    ||
+
+    h.includes("ellas")
+
+    ||
+
+    h.includes("ustedes")
+
+    ||
+
+    h.includes("ellos/as")
+
+    ||
+
+    h.includes("3 persona plural")
+
+    ||
+
+    h.includes("3a persona plural")
+
+    ||
+
+    h.includes("3ª persona plural")
+
+    ||
+
+    h.includes("第三人称复数")
+
+  ){
+
+    return "th";
+
+  }
+
+
+  /* 备注 */
+
+  if(
+
+    h === "备注"
+
+    ||
+
+    h === "说明"
+
+    ||
+
+    h === "note"
+
+    ||
+
+    h === "notes"
+
+    ||
+
+    h.includes("备注")
+
+    ||
+
+    h.includes("说明")
+
+  ){
+
+    return "note";
+
+  }
+
+
+  return null;
+
+}
+
+
+/* =========================================================
+   找到需要的列
+   ========================================================= */
+
+function detectColumns(headers){
+
+  const result = {};
+
+
+  headers.forEach(header => {
+
+    const type =
+      identifyColumn(header);
+
+
+    if(!type) return;
+
+
+    if(!result[type]){
+
+      result[type] = header;
+
+    }
+
+  });
+
+
+  return result;
+
+}
+
+
+/* =========================================================
+   处理时态
+   ========================================================= */
+
+function normalizeTense(value){
+
+  const s =
+    String(value ?? "").trim();
+
+
+  if(!s){
+
+    return {
+
+      zh:DEFAULT_TENSE,
+
+      es:DEFAULT_TENSE_ES
+
+    };
+
+  }
+
+
+  if(
+    /presente de indicativo/i.test(s)
+  ){
+
+    return {
+
+      zh:"直陈式现在时",
+
+      es:"Presente de Indicativo"
+
+    };
+
+  }
+
+
+  if(
+
+    s === "直陈式现在时"
+
+    ||
+
+    s === "陈述式现在时"
+
+    ||
+
+    s === "现在时"
+
+  ){
+
+    return {
+
+      zh:"直陈式现在时",
+
+      es:"Presente de Indicativo"
+
+    };
+
+  }
+
+
+  return {
+
+    zh:s,
+
+    es:""
+
+  };
+
+}
+
+
+/* =========================================================
+   读取 Excel
+   ========================================================= */
+
+function parse(wb){
+
+  let best = [];
+
+
+  wb.SheetNames.forEach(sheetName => {
+
+    const sheet =
+      wb.Sheets[sheetName];
+
+
+    const rows =
+      XLSX.utils.sheet_to_json(
+        sheet,
+        {
+          defval:""
+        }
+      );
+
+
+    if(!rows.length) return;
+
+
+    const headers =
+      Object.keys(rows[0]);
+
+
+    const cols =
+      detectColumns(headers);
+
+
+    if(!cols.v) return;
+
+
+    const out = rows
+
+      .map(row => {
+
+
+        const tense =
+          normalizeTense(
+            cols.tense
+              ? row[cols.tense]
+              : ""
+          );
+
+
+        return {
+
+          v:
+            cols.v
+              ? String(row[cols.v] ?? "").trim()
+              : "",
+
+          m:
+            cols.m
+              ? String(row[cols.m] ?? "").trim()
+              : "",
+
+          u:
+            cols.u
+              ? String(row[cols.u] ?? "").trim()
+              : "",
+
+          c:
+            cols.c
+              ? String(row[cols.c] ?? "").trim()
+              : "",
+
+          tense:
+            tense.zh,
+
+          tenseEs:
+            tense.es,
+
+          yo:
+            cols.yo
+              ? String(row[cols.yo] ?? "").trim()
+              : "",
+
+          tu:
+            cols.tu
+              ? String(row[cols.tu] ?? "").trim()
+              : "",
+
+          el:
+            cols.el
+              ? String(row[cols.el] ?? "").trim()
+              : "",
+
+          no:
+            cols.no
+              ? String(row[cols.no] ?? "").trim()
+              : "",
+
+          vo:
+            cols.vo
+              ? String(row[cols.vo] ?? "").trim()
+              : "",
+
+          th:
+            cols.th
+              ? String(row[cols.th] ?? "").trim()
+              : "",
+
+          note:
+            cols.note
+              ? String(row[cols.note] ?? "").trim()
+              : ""
+
+        };
+
+      })
+
+      .filter(x => x.v);
+
+
+    if(out.length > best.length){
+
+      best = out;
+
+    }
+
+  });
+
+
+  return best;
+
+}
+
+
+/* =========================================================
+   HTML 转义
+   ========================================================= */
+
+function esc(s){
+
+  return String(s ?? "")
+    .replace(
+      /[&<>"']/g,
+      x => ({
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        '"':"&quot;",
+        "'":"&#39;"
+      }[x])
+    );
+
+}
+
+
+/* =========================================================
+   变位分类筛选
+   ========================================================= */
+
+function buildFilters(){
+
+  const cats = [
+
+    ...new Set(
+
+      data
+        .map(x => x.c)
+        .filter(Boolean)
+
+    )
+
+  ];
+
+
+  const box =
+    document.getElementById(
+      "filters"
+    );
+
+
+  box.innerHTML = "";
+
+
+  [
+    "全部",
+    ...cats
+  ].forEach(x => {
+
+
+    const b =
+      document.createElement(
+        "button"
+      );
+
+
+    b.className =
+      "filter " +
+      (
+        x === filter
+          ? "active"
+          : ""
+      );
+
+
+    b.textContent = x;
+
+
+    b.onclick = () => {
+
+      filter = x;
+
+      buildFilters();
+
+      render(
+        document.getElementById(
+          "q"
+        ).value
+      );
+
+    };
+
+
+    box.appendChild(b);
+
+  });
+
+}
+
+
+/* =========================================================
+   时态筛选
+   ========================================================= */
+
+function buildTenseFilters(){
+
+  const tenses = [
+
+    ...new Set(
+
+      data
+        .map(x => x.tense)
+        .filter(Boolean)
+
+    )
+
+  ];
+
+
+  const box =
+    document.getElementById(
+      "tenseFilters"
+    );
+
+
+  box.innerHTML = "";
+
+
+  [
+    "全部",
+    ...tenses
+  ].forEach(x => {
+
+
+    const b =
+      document.createElement(
+        "button"
+      );
+
+
+    b.className =
+      "filter " +
+      (
+        x === tenseFilter
+          ? "active"
+          : ""
+      );
+
+
+    b.textContent = x;
+
+
+    b.onclick = () => {
+
+      tenseFilter = x;
+
+      buildTenseFilters();
+
+      render(
+        document.getElementById(
+          "q"
+        ).value
+      );
+
+    };
+
+
+    box.appendChild(b);
+
+  });
+
+}
+
+
+/* =========================================================
+   查询
+   ========================================================= */
+
+function list(q=""){
+
+  const n =
+    norm(q);
+
+
+  return data.filter(x => {
+
+
+    const categoryOK =
+      filter === "全部" ||
+      x.c === filter;
+
+
+    const tenseOK =
+      tenseFilter === "全部" ||
+      x.tense === tenseFilter;
+
+
+    const searchOK =
+      !n ||
+      norm(x.v).includes(n);
+
+
+    return (
+
+      categoryOK &&
+
+      tenseOK &&
+
+      searchOK
+
+    );
+
+  });
+
+}
+
+
+/* =========================================================
+   动词卡片
+   ========================================================= */
+
+function card(x){
+
+
+  const rows = [
+
+    ["yo",x.yo],
+
+    ["tú",x.tu],
+
+    ["él / ella / usted",x.el],
+
+    ["nosotros / nosotras",x.no],
+
+    ["vosotros / vosotras",x.vo],
+
+    ["ellos / ellas / ustedes",x.th]
+
+  ].filter(
+    r => r[1]
+  );
+
+
+  /*
+    Excel 中自己填写的备注
+  */
+
+  let note =
+    x.note
+      ? `
+
+        <div class="note">
+
+          ${esc(x.note)}
+
+        </div>
+
+      `
+      : "";
+
+
+  const c =
+    norm(x.c);
+
+
+  /*
+    gustar / encantar
+    自动提示。
+
+    反身动词不会自动生成 Note。
+  */
+
+  if(
+
+    c.includes("gustar")
+
+    ||
+
+    c.includes("encantar")
+
+  ){
+
+    note += `
+
+      <div class="rule-note">
+
+        <b>💡 变位规则：</b>
+
+        gustar 类动词常用结构是
+        me / te / le / nos / os / les
+        + gusta / gustan。
+
+        gusta 接单数名词或动词原形；
+        gustan 接复数名词。
+
+      </div>
+
+    `;
+
+  }
+
+
+  /*
+    时态表头
+
+    例如：
+    直陈式现在时
+    →
+    直陈式现在时变位
+
+    不再单独生成时态标签。
+  */
+
+  const tenseHeader =
+    (x.tense || DEFAULT_TENSE) +
+    "变位";
+
+
+  return `
+
+    <article class="card">
+
+
+      <div class="head">
+
+
+        <div class="verb">
+
+          ${esc(x.v)}
+
+        </div>
+
+
+        ${
+          x.m
+          ? `
+
+            <div class="meaning">
+
+              ${esc(x.m)}
+
+            </div>
+
+          `
+          : ""
+        }
+
+
+        <div class="tags">
+
+
+          ${
+            x.c
+            ? `
+
+              <span class="category-tag">
+
+                ${esc(x.c)}
+
+              </span>
+
+            `
+            : ""
+          }
+
+
+          ${
+            x.u
+            ? `
+
+              <span class="tag">
+
+                ${esc(x.u)}
+
+              </span>
+
+            `
+            : ""
+          }
+
+
+        </div>
+
+
+        ${note}
+
+
+      </div>
+
+
+      <table>
+
+
+        <tr>
+
+          <th>
+            人称
+          </th>
+
+          <th>
+            ${esc(tenseHeader)}
+          </th>
+
+        </tr>
+
+
+        ${
+          rows
+            .map(
+              r => `
+
+                <tr>
+
+                  <td>
+
+                    ${esc(r[0])}
+
+                  </td>
+
+                  <td>
+
+                    <b>
+
+                      ${esc(r[1])}
+
+                    </b>
+
+                  </td>
+
+                </tr>
+
+              `
+            )
+            .join("")
+        }
+
+
+      </table>
+
+
+    </article>
+
+  `;
+
+}
+
+
+/* =========================================================
+   显示结果
+   ========================================================= */
+
+function render(q=""){
+
+  const a =
+    list(q);
+
+
+  document.getElementById(
+    "count"
+  ).textContent =
+
+
+    data.length
+
+      ? `共 ${a.length} 个匹配记录`
+
+      : "";
+
+
+  document.getElementById(
+    "results"
+  ).innerHTML =
+
+
+    !data.length
+
+      ? `
+
+        <div class="empty">
+
+          📚
+
+          <p>
+            请上传你的 Excel。
+          </p>
+
+          <small>
+
+            程序会自动识别需要的字段，
+            其他字段会自动忽略。
+
+          </small>
+
+        </div>
+
+      `
+
+
+      : a.length
+
+
+        ? a
+            .slice(0,100)
+            .map(card)
+            .join("")
+
+
+        : `
+
+          <div class="empty">
+
+            没有找到匹配的动词。
+
+          </div>
+
+        `;
+
+}
+
+
+/* =========================================================
+   搜索建议
+   ========================================================= */
+
+function suggestions(q){
+
+  const box =
+    document.getElementById(
+      "suggest"
+    );
+
+
+  const a =
+    list(q)
+      .slice(0,8);
+
+
+  if(
+    !q ||
+    !a.length
+  ){
+
+    box.hidden = true;
+
+    return;
+
+  }
+
+
+  box.innerHTML =
+
+    a.map(
+      (x,i) => `
+
+        <div
+          class="s"
+          data-i="${i}"
+        >
+
+          <b>
+
+            ${esc(x.v)}
+
+          </b>
+
+
+          <span
+            style="color:#68707d"
+          >
+
+            ${esc(x.m)}
+
+          </span>
+
+
+          <br>
+
+
+          <small>
+
+            ${esc(x.tense)}
+
+          </small>
+
+        </div>
+
+      `
+    ).join("");
+
+
+  box.hidden = false;
+
+
+  box.querySelectorAll(".s")
+    .forEach((e,i) => {
+
+
+      e.onclick = () => {
+
+
+        document.getElementById(
+          "q"
+        ).value =
+          a[i].v;
+
+
+        box.hidden = true;
+
+
+        render(
+          a[i].v
+        );
+
+      };
+
+
+    });
+
+}
+
+
+/* =========================================================
+   IndexedDB 本地缓存
+   ========================================================= */
+
+const DB_NAME =
+  "SpanishVerbLookupDB";
+
+const STORE =
+  "data";
+
+const KEY =
+  "verbs";
+
+
+function openDB(){
+
+  return new Promise(
+    (resolve,reject) => {
+
+
+      const r =
+        indexedDB.open(
+          DB_NAME,
+          1
+        );
+
+
+      r.onupgradeneeded =
+        () => {
+
+
+          if(
+
+            !r.result
+              .objectStoreNames
+              .contains(STORE)
+
+          ){
+
+            r.result
+              .createObjectStore(
+                STORE
+              );
+
+          }
+
+        };
+
+
+      r.onsuccess =
+        () =>
+          resolve(
+            r.result
+          );
+
+
+      r.onerror =
+        () =>
+          reject(
+            r.error
+          );
+
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   保存缓存
+   ========================================================= */
+
+async function saveCache(rows){
+
+  const db =
+    await openDB();
+
+
+  await new Promise(
+    (resolve,reject) => {
+
+
+      const tx =
+        db.transaction(
+          STORE,
+          "readwrite"
+        );
+
+
+      tx.objectStore(
+        STORE
+      ).put(
+
+        {
+
+          rows:rows,
+
+          savedAt:
+            new Date()
+              .toISOString()
+
+        },
+
+        KEY
+
+      );
+
+
+      tx.oncomplete =
+        resolve;
+
+
+      tx.onerror =
+        () =>
+          reject(
+            tx.error
+          );
+
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   读取缓存
+   ========================================================= */
+
+async function loadCache(){
+
+  const db =
+    await openDB();
+
+
+  return new Promise(
+    (resolve,reject) => {
+
+
+      const tx =
+        db.transaction(
+          STORE,
+          "readonly"
+        );
+
+
+      const r =
+        tx.objectStore(
+          STORE
+        ).get(KEY);
+
+
+      r.onsuccess =
+        () =>
+          resolve(
+            r.result || null
+          );
+
+
+      r.onerror =
+        () =>
+          reject(
+            r.error
+          );
+
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   清除缓存
+   ========================================================= */
+
+async function clearCache(){
+
+  const db =
+    await openDB();
+
+
+  await new Promise(
+    (resolve,reject) => {
+
+
+      const tx =
+        db.transaction(
+          STORE,
+          "readwrite"
+        );
+
+
+      tx.objectStore(
+        STORE
+      ).delete(KEY);
+
+
+      tx.oncomplete =
+        resolve;
+
+
+      tx.onerror =
+        () =>
+          reject(
+            tx.error
+          );
+
+
+    }
+  );
+
+
+  data = [];
+
+  filter = "全部";
+
+  tenseFilter = "全部";
+
+
+  buildFilters();
+
+  buildTenseFilters();
+
+  render();
+
+
+  document.getElementById(
+    "status"
+  ).textContent =
+    "已清除";
+
+
+  document.getElementById(
+    "cacheStatus"
+  ).textContent = "";
+
+}
+
+
+/* =========================================================
+   使用数据
+   ========================================================= */
+
+function useRows(
+  rows,
+  label
+){
+
+  data = rows;
+
+  filter = "全部";
+
+  tenseFilter = "全部";
+
+
+  buildFilters();
+
+  buildTenseFilters();
+
+  render();
+
+
+  document.getElementById(
+    "status"
+  ).textContent =
+    label;
+
+}
+
+
+/* =========================================================
+   上传 Excel
+   ========================================================= */
+
+document.getElementById(
+  "file"
+).onchange = async e => {
+
+
+  const f =
+    e.target.files[0];
+
+
+  if(!f) return;
+
+
+  try{
+
+
+    const wb =
+      XLSX.read(
+
+        await f.arrayBuffer(),
+
+        {
+          type:"array"
+        }
+
+      );
+
+
+    const rows =
+      parse(wb);
+
+
+    if(!rows.length){
+
+      throw new Error(
+        "没有找到可以识别的“动词”列"
+      );
+
+    }
+
+
+    await saveCache(rows);
+
+
+    useRows(
+      rows,
+      `已载入 ${rows.length} 条记录`
+    );
+
+
+    document.getElementById(
+      "cacheStatus"
+    ).textContent =
+      "✓ 已保存在本机";
+
+
+    document.getElementById(
+      "cacheStatus"
+    ).className =
+      "cache-ok";
+
+
+  }catch(err){
+
+
+    document.getElementById(
+      "status"
+    ).textContent =
+      "读取失败：" +
+      err.message;
+
+
+  }
+
+};
+
+
+/* =========================================================
+   清除缓存
+   ========================================================= */
+
+document.getElementById(
+  "clearCache"
+).onclick = async () => {
+
+
+  try{
+
+    await clearCache();
+
+  }catch(e){
+
+    document.getElementById(
+      "status"
+    ).textContent =
+      "清除失败：" +
+      e.message;
+
+  }
+
+};
+
+
+/* =========================================================
+   启动时读取缓存
+   ========================================================= */
+
+(async()=>{
+
+
+  try{
+
+
+    const cached =
+      await loadCache();
+
+
+    if(
+
+      cached &&
+
+      cached.rows &&
+
+      cached.rows.length
+
+    ){
+
+
+      /*
+        兼容旧版本缓存。
+
+        旧数据如果没有时态，
+        自动视为直陈式现在时。
+      */
+
+      cached.rows =
+        cached.rows.map(x => {
+
+
+          if(!x.tense){
+
+            x.tense =
+              DEFAULT_TENSE;
+
+            x.tenseEs =
+              DEFAULT_TENSE_ES;
+
+          }
+
+
+          return x;
+
+        });
+
+
+      useRows(
+
+        cached.rows,
+
+        `已从本机缓存载入 ${cached.rows.length} 条记录`
+
+      );
+
+
+      const d =
+        new Date(
+          cached.savedAt
+        );
+
+
+      document.getElementById(
+        "cacheStatus"
+      ).textContent =
+        "✓ 已保存于 " +
+        d.toLocaleString();
+
+
+      document.getElementById(
+        "cacheStatus"
+      ).className =
+        "cache-ok";
+
+
+    }else{
+
+
+      render();
+
+
+    }
+
+
+  }catch(e){
+
+    render();
+
+  }
+
+
+})();
+
+
+/* =========================================================
+   搜索输入
+   ========================================================= */
+
+document.getElementById(
+  "q"
+).oninput = e => {
+
+
+  suggestions(
+    e.target.value
+  );
+
+
+  render(
+    e.target.value
+  );
+
+};
+
+
+/* =========================================================
+   清空搜索
+   ========================================================= */
+
+document.getElementById(
+  "clear"
+).onclick = () => {
+
+
+  document.getElementById(
+    "q"
+  ).value = "";
+
+
+  document.getElementById(
+    "suggest"
+  ).hidden = true;
+
+
+  render();
+
+};
+
+
+/* =========================================================
+   点击其他位置关闭搜索建议
+   ========================================================= */
+
+document.onclick = e => {
+
+
+  if(
+    !e.target.closest(".search")
+  ){
+
+    document.getElementById(
+      "suggest"
+    ).hidden = true;
+
+  }
+
+};
+
+
+/* =========================================================
+   初始化
+   ========================================================= */
+
+render();
+
+</script>
+
+</body>
+
+</html>
